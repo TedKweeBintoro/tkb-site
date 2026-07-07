@@ -224,7 +224,20 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
   user-select: none;
 }
 
-.hw .c { width: calc(var(--hws) * var(--fw) * 1px); }
+.hw .c {
+  width: calc(var(--hws) * var(--fw) * 1px);
+  object-fit: cover;
+  object-position: left bottom;
+  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1), opacity 0.3s ease;
+}
+
+/* business email swaps the centre word for katytechnologies */
+.hw .c.swap { width: 0; opacity: 0; }
+.hw[data-active="business"] #mid-ted { width: 0; opacity: 0; }
+.hw[data-active="business"] .c.swap {
+  width: calc(var(--hws) * var(--fw) * 1px);
+  opacity: 1;
+}
 
 /* fragments reveal by growing from the centre word outward */
 .hw .f {
@@ -235,6 +248,10 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 }
 .pre .f  { object-position: right bottom; }
 .post .f { object-position: left bottom; }
+
+/* x.com/ huddles closer to the name */
+.slot.mid { transition: margin-left 0.45s cubic-bezier(0.6, 0.15, 0.15, 1); }
+.hw[data-active="twitter"] .slot.mid { margin-left: calc(var(--hws) * -72px); }
 
 .hw[data-active="instagram"] .f[data-for~="instagram"],
 .hw[data-active="twitter"]   .f[data-for~="twitter"],

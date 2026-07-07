@@ -5,8 +5,8 @@
   "baseline": 7
  },
  "dotcom": {
-  "w": 359,
-  "h": 88,
+  "w": 350,
+  "h": 58,
   "baseline": 36
  },
  "ted-at": {
@@ -26,17 +26,22 @@
  },
  "linkedin": {
   "w": 1270,
-  "h": 263,
+  "h": 217,
   "baseline": 122
  },
  "instagram": {
   "w": 1284,
-  "h": 258,
+  "h": 204,
   "baseline": 103
  },
  "substack": {
-  "w": 1114,
+  "w": 1092,
   "h": 159,
   "baseline": 116
+ },
+ "katytechnologies": {
+  "w": 799,
+  "h": 171,
+  "baseline": 80
  }
 }

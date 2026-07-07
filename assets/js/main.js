@@ -11,9 +11,11 @@
   var strokes = Array.prototype.slice.call(
     document.querySelectorAll("#sigmask .ms")
   );
+  var done = false;
 
   function finish(skipFlip) {
-    if (!body.classList.contains("intro")) return;
+    if (done) return;
+    done = true;
     strokes.forEach(function (p) { p.style.strokeDashoffset = 0; });
 
     if (skipFlip || reduced || !sig) {
@@ -55,6 +57,7 @@
     var t0 = null;
 
     function frame(ts) {
+      if (done) return;
       if (t0 === null) t0 = ts;
       var elapsed = ts - t0;
       var travelled = 0;
@@ -88,8 +91,18 @@
     window.setTimeout(function () { finish(false); }, 8000);
   }
 
-  if (document.readyState === "complete") sign();
-  else window.addEventListener("load", sign);
+  function start() {
+    if (!document.hidden) { sign(); return; }
+    /* background tab: hold the signing until it's actually watched */
+    document.addEventListener("visibilitychange", function once() {
+      if (!document.hidden) {
+        document.removeEventListener("visibilitychange", once);
+        sign();
+      }
+    });
+  }
+  if (document.readyState === "complete") start();
+  else window.addEventListener("load", start);
 
   /* ── footnote tooltips ───────────────────────────────────────────── */
 
