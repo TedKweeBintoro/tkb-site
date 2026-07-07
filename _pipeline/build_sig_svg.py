@@ -15,10 +15,13 @@ fill = open(f"{SCRATCH}/sig_fill.txt").read()
 meta = json.load(open(f"{SCRATCH}/sig_strokes.json"))
 frags = meta["strokes"]
 
-# the B's actual downstroke is short: just the top of the spine to the pinch
-B_SPINE = [[476, 7], [468, 10], [464, 16], [465, 26], [471, 40], [473, 46]]
-# the hyphen dash, drawn along the visible ink crossing the B's entry
-HYPHEN = [[446, 77], [457, 66], [469, 55], [474, 50]]
+# the B's downstroke: one continuous line, top of the B to its bottom-left
+# foot, following the ink through the mid pinch
+B_SPINE = [[476, 7], [468, 10], [464, 16], [465, 26], [471, 40], [473, 46],
+           [468, 60], [461, 75], [460, 80], [468, 88], [462, 93], [455, 98],
+           [447, 106]]
+# the hyphen dash at its full extent, crossing the B's entry
+HYPHEN = [[441, 84], [458, 66], [475, 48]]
 
 # (name, parts, pause_ms_after, width_override_or_None)
 GROUPS = [
@@ -26,9 +29,9 @@ GROUPS = [
     ("ed",       [3, 4, 5, 6, 7],                    0,   None),
     ("Kdown",    ["8R"],                             0,   8.0),
     ("Kwee",     [11, 9, 10, 12, 13, 14, 15],        0,   None),
-    ("hyphen",   ["HYPHEN"],                         0,   7.5),
-    ("Bdown",    ["SPINE"],                          0,   9.0),
-    ("Bintoro",  ["16R", 19, 20, 18, 17, 21, 22, 23, "24R", 25, 26, 27, 28], 0, None),
+    ("hyphen",   ["HYPHEN"],                         0,   8.0),
+    ("Bdown",    ["SPINE"],                          0,   10.5),
+    ("Bintoro",  ["16R", 17, 21, 22, 23, "24R", 25, 26, 27, 28], 0, None),
     ("tittle",   [29],                               260, None),   # beat before the drawing
     ("hair",     [30, 31],                           0,   None),
     ("headear",  [32],                               0,   8.5),
