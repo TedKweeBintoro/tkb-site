@@ -17,6 +17,9 @@
     if (done) return;
     done = true;
     strokes.forEach(function (p) { p.style.strokeDashoffset = 0; });
+    /* drop the mask entirely: the finished signature is the plain fill */
+    var fill = document.getElementById("sigfill");
+    if (fill) fill.removeAttribute("mask");
 
     if (skipFlip || reduced || !sig) {
       body.classList.remove("intro");
@@ -147,16 +150,21 @@
   var hw = document.getElementById("hw");
   var words = Array.prototype.slice.call(document.querySelectorAll(".word"));
   var restHref = "https://tedkweebintoro.com";
+  var lastNet = null;   /* where the pointer is coming from */
 
   function activate(word) {
     words.forEach(function (w) { w.classList.toggle("on", w === word); });
     if (!word) {
       delete hw.dataset.active;
+      delete hw.dataset.via;
+      lastNet = null;
       hw.setAttribute("href", restHref);
       hw.setAttribute("aria-label", "tedkweebintoro");
       return;
     }
+    hw.dataset.via = lastNet || "";
     hw.dataset.active = word.dataset.net;
+    lastNet = word.dataset.net;
     hw.setAttribute("href", word.getAttribute("href"));
     hw.setAttribute("aria-label", word.textContent.replace(/\s+/g, " ") + " — " + word.getAttribute("href"));
   }

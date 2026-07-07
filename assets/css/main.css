@@ -122,12 +122,15 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 
 .bio { text-align: justify; }
 
+/* M spans line-1 cap top to line-2 baseline, flush with the copy block
+   (Redaction: cap .70em, font box 1.2em; bio line 1.58em) */
 .dropcap {
   float: left;
   font-weight: 700;
-  font-size: 3.05em;
-  line-height: 0.83;
-  padding: 0.04em 0.06em 0 0;
+  font-size: 3.257em;
+  line-height: 0.8;
+  padding: 0.12em 0.07em 0 0;
+  margin-left: 0.02em;
 }
 
 .lnk {
@@ -234,9 +237,23 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 /* business email swaps the centre word for katytechnologies */
 .hw .c.swap { width: 0; opacity: 0; }
 .hw[data-active="business"] #mid-ted { width: 0; opacity: 0; }
-.hw[data-active="business"] .c.swap {
+.hw[data-active="business"] #mid-katy {
   width: calc(var(--hws) * var(--fw) * 1px);
   opacity: 1;
+}
+/* arriving anywhere but from personal email: keep tedkweebintoro's own
+   "ted", write the @ after it, and skip the ted-at prefix */
+.hw[data-active="business"]:not([data-via="personal"]) #mid-ted {
+  width: calc(var(--hws) * var(--fcut) * 1px);
+  opacity: 1;
+}
+.hw[data-active="business"]:not([data-via="personal"]) #mid-at {
+  width: calc(var(--hws) * var(--fw) * 1px);
+  opacity: 1;
+}
+.hw[data-active="business"]:not([data-via="personal"]) .pre .f[data-for~="business"] {
+  width: 0;
+  opacity: 0;
 }
 
 /* fragments reveal by growing from the centre word outward */
@@ -249,9 +266,10 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 .pre .f  { object-position: right bottom; }
 .post .f { object-position: left bottom; }
 
-/* x.com/ huddles closer to the name */
+/* the name huddles closer to the slashes */
 .slot.mid { transition: margin-left 0.45s cubic-bezier(0.6, 0.15, 0.15, 1); }
 .hw[data-active="twitter"] .slot.mid { margin-left: calc(var(--hws) * -72px); }
+.hw[data-active="instagram"] .slot.mid { margin-left: calc(var(--hws) * -48px); }
 
 .hw[data-active="instagram"] .f[data-for~="instagram"],
 .hw[data-active="twitter"]   .f[data-for~="twitter"],

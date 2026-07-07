@@ -17,7 +17,8 @@ ink = np.array(Image.open(f"{SCRATCH}/ink_layer.png"))[..., 3].astype(float) / 2
 # name: (x0, y0, x1, y1, rot_deg, dup)
 FRAGS = [
     ("period",         (250, 992,  298, 1040), -3.5, True),
-    ("dotcom",         (150, 290,  580, 430), -4.0, False),
+    ("dotcom",         (150, 290,  580, 400), -4.0, False),   # y<=400: leaves the lower dot to instagram (i tittle)
+    ("at",             (540,  55,  735, 295), -4.0, True),
     ("ted-at",         (100,  40,  720, 300), -4.0, False),
     ("tedkweebintoro", (690,  30, 1820, 300), -4.0, False),
     ("xcom",           (100, 830,  760, 1150), -3.5, False),

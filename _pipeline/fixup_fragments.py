@@ -21,13 +21,15 @@ def comps(a):
     lbl, n = ndimage.label(a > 0.04, structure=np.ones((3, 3)))
     return lbl, n
 
-def shift_component_mask(a, mask, dy):
-    """move pixels under mask up by dy (dy>0 = up), erase original."""
+def shift_xy(a, mask, dx, dy):
+    """move pixels under mask by (dx, dy) in image coords, erase original."""
     src = a * mask
     a = a * (~mask)
-    h, w = a.shape
-    moved = np.zeros_like(a)
-    moved[:h - dy, :] = src[dy:, :]
+    moved = np.roll(np.roll(src, dy, axis=0), dx, axis=1)
+    if dy > 0: moved[:dy, :] = 0
+    elif dy < 0: moved[dy:, :] = 0
+    if dx > 0: moved[:, :dx] = 0
+    elif dx < 0: moved[:, dx:] = 0
     return np.maximum(a, moved)
 
 def trim(a):
@@ -80,28 +82,35 @@ RAISE_SLASH = 62
 for i, sl in enumerate(ndimage.find_objects(lbl)):
     ys, xs = sl
     if xs.start >= 1000 and (ys.stop - ys.start) > 120:   # the slash
-        a = shift_component_mask(a, lbl == i + 1, RAISE_SLASH)
+        a = shift_xy(a, lbl == i + 1, 0, -RAISE_SLASH)
         break
 old_top = np.nonzero((a > 0.06).any(axis=1))[0].min()
 a = trim(a)
 man["instagram"] = save("instagram", a, man["instagram"]["baseline"] - old_top)
 
-# ---- linkedin: raise the /in/ cluster (components starting x>=750) ----
+# ---- linkedin: raise /in/, lift the word, drop .com down-left (centered) ----
 a = load("linkedin")
 lbl, n = comps(a)
-RAISE_IN = 46
-mask = np.zeros_like(a, dtype=bool)
+m_word = np.zeros_like(a, dtype=bool)
+m_com = np.zeros_like(a, dtype=bool)
+m_in = np.zeros_like(a, dtype=bool)
 for i, sl in enumerate(ndimage.find_objects(lbl)):
     ys, xs = sl
-    if xs.start >= 750:
-        mask |= (lbl == i + 1)
-a = shift_component_mask(a, mask, RAISE_IN)
+    if xs.start < 550:
+        m_word |= (lbl == i + 1)
+    elif xs.start < 745:
+        m_com |= (lbl == i + 1)
+    else:
+        m_in |= (lbl == i + 1)
+a = shift_xy(a, m_word, 0, -8)
+a = shift_xy(a, m_com, -20, 9)
+a = shift_xy(a, m_in, 0, -46)
 old_top = np.nonzero((a > 0.06).any(axis=1))[0].min()
 a = trim(a)
-man["linkedin"] = save("linkedin", a, man["linkedin"]["baseline"] - old_top)
+man["linkedin"] = save("linkedin", a, man["linkedin"]["baseline"] - 8 - old_top)
 
 # ---- katytechnologies: downscale to notebook x-height ----
-SCALE = 0.46
+SCALE = 0.70
 im = Image.open(f"{F}/katytechnologies.png")
 assert im.height > 300, "katy already scaled — re-extract first"
 nw, nh = int(im.width * SCALE), int(im.height * SCALE)
