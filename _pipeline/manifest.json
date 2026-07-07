@@ -1,0 +1,42 @@
+{
+ "period": {
+  "w": 14,
+  "h": 10,
+  "baseline": 7
+ },
+ "dotcom": {
+  "w": 359,
+  "h": 88,
+  "baseline": 36
+ },
+ "ted-at": {
+  "w": 592,
+  "h": 153,
+  "baseline": 110
+ },
+ "tedkweebintoro": {
+  "w": 1059,
+  "h": 147,
+  "baseline": 104
+ },
+ "xcom": {
+  "w": 571,
+  "h": 283,
+  "baseline": 129
+ },
+ "linkedin": {
+  "w": 1270,
+  "h": 263,
+  "baseline": 122
+ },
+ "instagram": {
+  "w": 1284,
+  "h": 258,
+  "baseline": 103
+ },
+ "substack": {
+  "w": 1114,
+  "h": 159,
+  "baseline": 116
+ }
+}
