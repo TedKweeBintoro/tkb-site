@@ -1,19 +1,33 @@
-"""Generate the inline signature SVG with hand-authored stroke order.
+"""Generate the inline signature SVG as 14 per-stroke sub-paths.
 
-Groups (one <path> each, drawn continuously; pen lifts between groups):
-  T, ed, K-downstroke, rest-of-Kwee, hyphen, B-downstroke,
-  rest-of-Bintoro (from top-left of B, through intoro),
-  i-tittle, then the doodle: hair, head+ear, eyes, mouth, inner ear.
+The signature ink is PARTITIONED among the pen strokes: each stroke gets its
+own potraced fill, revealed by its own mask. A mask stroke can therefore only
+ever reveal its own stroke's ink — crossings never bleed into other strokes.
+
+Stroke order (matches the notebook progression):
+  T, ed, K-downstroke, rest-of-Kwee, hyphen, B-downstroke, rest-of-B,
+  intoro, i-tittle, then the doodle: hair, head+ear, eyes, mouth, inner ear.
 Fragment ids refer to sig_strokes.json; "NR" = fragment N reversed.
 """
 import json
+import numpy as np
+import potrace
+from PIL import Image, ImageDraw
+from scipy import ndimage
 
 SCRATCH = "/private/tmp/claude-501/-Users-tehsauscabe-tkb-site/6230281c-01e0-4204-958b-bd340df3e7d1/scratchpad"
 SITE = "/Users/tehsauscabe/tkb-site"
 
-fill = open(f"{SCRATCH}/sig_fill.txt").read()
 meta = json.load(open(f"{SCRATCH}/sig_strokes.json"))
 frags = meta["strokes"]
+W, H = meta["w"], meta["h"]
+
+# ink mask from the original scan
+img = Image.open(f"{SCRATCH}/SignatureHQ.png").convert("RGBA")
+arr = np.array(img)
+alpha = arr[..., 3].astype(float) / 255.0
+lum = arr[..., :3].astype(float).mean(axis=2)
+ink = (lum * alpha + 255.0 * (1 - alpha)) < 128
 
 # the B's downstroke: one continuous line, top of the B to its bottom-left
 # foot, following the ink through the mid pinch
@@ -23,69 +37,125 @@ B_SPINE = [[476, 7], [468, 10], [464, 16], [465, 26], [471, 40], [473, 46],
 # the hyphen dash at its full extent, crossing the B's entry
 HYPHEN = [[441, 84], [458, 66], [475, 48]]
 
-# (name, parts, pause_ms_after, width_override_or_None)
+# (name, parts, pause_ms_after)
 GROUPS = [
-    ("T",        [0, 1, 2],                          0,   None),
-    ("ed",       [3, 4, 5, 6, 7],                    0,   None),
-    ("Kdown",    ["8R"],                             0,   8.0),
-    ("Kwee",     [11, 9, 10, 12, 13, 14, 15],        0,   None),
-    ("hyphen",   ["HYPHEN"],                         0,   8.0),
-    ("Bdown",    ["SPINE"],                          0,   10.5),
-    ("Brest",    ["16R", 17],                      0,   None),
-    ("intoro",   [21, 22, 23, "24R", 25, 26, 27, 28], 0, None),
-    ("tittle",   [29],                               260, None),   # beat before the drawing
-    ("hair",     [30, 31],                           0,   None),
-    ("headear",  [32],                               0,   8.5),
-    ("eyes",     [33, 34, 35],                       0,   None),
-    ("mouth",    [36],                               0,   None),
-    ("innerear", [37, 38],                           0,   None),
+    ("T",        [0, 1, 2],                          0),
+    ("ed",       [3, 4, 5, 6, 7],                    0),
+    ("Kdown",    ["8R"],                             0),
+    ("Kwee",     [11, 9, 10, 12, 13, 14, 15],        0),
+    ("hyphen",   ["HYPHEN"],                         0),
+    ("Bdown",    ["SPINE"],                          0),
+    ("Brest",    ["16R", 17],                        0),
+    ("intoro",   [21, 22, 23, "24R", 25, 26, 27, 28], 0),
+    ("tittle",   [29],                               260),   # beat before the drawing
+    ("hair",     [30, 31],                           0),
+    ("headear",  [32],                               0),
+    ("eyes",     [33, 34, 35],                       0),
+    ("mouth",    [36],                               0),
+    ("innerear", [37, 38],                           0),
 ]
-
-def tweak_headear(pts):
-    """dip the jaw segment so the mask clears the mouth ink above it"""
-    return [[x, y + 2.5] if 795 <= x <= 840 else [x, y] for x, y in pts]
 
 def frag_pts(ref):
     if ref == "SPINE":
-        return [list(map(float, p)) for p in B_SPINE], 9.0
+        return [list(map(float, p)) for p in B_SPINE], 10.5
     if ref == "HYPHEN":
-        return [list(map(float, p)) for p in HYPHEN], 7.5
+        return [list(map(float, p)) for p in HYPHEN], 8.0
     if isinstance(ref, str) and ref.endswith("R"):
         f = frags[int(ref[:-1])]
         return list(reversed(f["pts"])), f["w"]
     f = frags[ref]
     return f["pts"], f["w"]
 
-paths = []
-for name, parts, pause, w_over in GROUPS:
+# assemble each group's polyline + nominal width
+groups = []
+for name, parts, pause in GROUPS:
     pts_all, wmax = [], 0.0
     for ref in parts:
         pts, w = frag_pts(ref)
         wmax = max(wmax, w)
         pts_all.extend(pts)
-    if name == "headear":
-        pts_all = tweak_headear(pts_all)
-    if w_over:
-        wmax = w_over
-    d = f"M{pts_all[0][0]},{pts_all[0][1]}" + "".join(
-        f"L{x},{y}" for x, y in pts_all[1:])
-    pause_attr = f' data-pause="{pause}"' if pause else ""
-    paths.append(
-        f'<path class="ms" data-g="{name}" d="{d}" stroke-width="{wmax}"{pause_attr}/>')
+    groups.append({"name": name, "pts": pts_all, "w": wmax, "pause": pause})
 
-svg = f'''<svg id="sig" viewBox="0 0 {meta["w"]} {meta["h"]}" role="img" aria-label="Ted Kwee-Bintoro's signature, ending in a small self-portrait doodle" xmlns="http://www.w3.org/2000/svg">
-<defs>
-<mask id="sigmask" maskUnits="userSpaceOnUse" x="0" y="0" width="{meta["w"]}" height="{meta["h"]}">
-<rect width="{meta["w"]}" height="{meta["h"]}" fill="#000"/>
-<g stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round">
-{chr(10).join(paths)}
-</g>
+# ---- partition the ink among the strokes ---------------------------------
+def polyline_dist(pts):
+    """distance transform to a 1px rasterization of the polyline"""
+    m = Image.new("L", (W, H), 0)
+    d = ImageDraw.Draw(m)
+    d.line([tuple(p) for p in pts], fill=255, width=1, joint="curve")
+    return ndimage.distance_transform_edt(np.array(m) < 128)
+
+dists = [polyline_dist(g["pts"]) for g in groups]
+
+# Exclusive assignment. penetration = distance beyond the stroke's half-width:
+# - a pixel inside more than one stroke's CORE is a true crossing -> earliest
+#   stroke in draw order owns it (the later pass is already inked, so its
+#   reveal void there is invisible)
+# - otherwise the pixel goes to the stroke it penetrates deepest
+CORE, CAPTURE = 1.0, 2.5
+pen = np.stack([d - g["w"] / 2 for d, g in zip(dists, groups)])
+in_core = pen <= CORE
+has_core = in_core.any(axis=0)
+first_core = in_core.argmax(axis=0)
+pen_cap = np.where(pen <= CAPTURE, pen, np.inf)
+has_cap = np.isfinite(pen_cap.min(axis=0))
+nearest_cap = pen_cap.argmin(axis=0)
+nearest_any = pen.argmin(axis=0)   # strays: nearest stroke outright
+choice = np.where(has_core, first_core,
+                  np.where(has_cap, nearest_cap, nearest_any))
+stray = ink & ~has_core & ~has_cap
+print(f"stray px: {int(stray.sum())}")
+
+fills = []
+for k, (g, dist) in enumerate(zip(groups, dists)):
+    f = ink & (choice == k)
+    captured = f & ~stray
+    g["svg_w"] = round(float(2 * dist[captured].max() + 2), 1)
+    g["fill"] = f
+    fills.append(f)
+
+# sanity: the fills partition the signature exactly
+union = np.zeros_like(ink)
+for f in fills:
+    assert not (union & f).any(), "fills overlap"
+    union |= f
+assert (ink & ~union).sum() == 0, "ink pixels lost in partition"
+
+# ---- potrace each stroke's ink -------------------------------------------
+def trace(mask):
+    bmp = potrace.Bitmap(~mask)   # potracer: 0 = foreground
+    plist = bmp.trace()
+    def fmt(p):
+        return f"{p.x:.2f},{p.y:.2f}"
+    parts = []
+    for c in plist.curves:
+        parts.append(f"M{fmt(c.start_point)}")
+        for s in c.segments:
+            if s.is_corner:
+                parts.append(f"L{fmt(s.c)}L{fmt(s.end_point)}")
+            else:
+                parts.append(f"C{fmt(s.c1)} {fmt(s.c2)} {fmt(s.end_point)}")
+        parts.append("Z")
+    return "".join(parts)
+
+chunks = []
+for i, g in enumerate(groups):
+    d_fill = trace(g["fill"])
+    d_line = f"M{g['pts'][0][0]},{g['pts'][0][1]}" + "".join(
+        f"L{x},{y}" for x, y in g["pts"][1:])
+    pause_attr = f' data-pause="{g["pause"]}"' if g["pause"] else ""
+    chunks.append(f'''<mask id="sm{i}" maskUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}">
+<rect width="{W}" height="{H}" fill="#000"/>
+<path class="ms" data-g="{g["name"]}" d="{d_line}" stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="{g["svg_w"]}"{pause_attr}/>
 </mask>
-</defs>
-<path id="sigfill" d="{fill}" fill="currentColor" fill-rule="evenodd" mask="url(#sigmask)"/>
+<path class="sf" d="{d_fill}" fill="currentColor" fill-rule="evenodd" mask="url(#sm{i})"/>''')
+
+svg = f'''<svg id="sig" viewBox="0 0 {W} {H}" role="img" aria-label="Ted Kwee-Bintoro's signature, ending in a small self-portrait doodle" xmlns="http://www.w3.org/2000/svg">
+{chr(10).join(chunks)}
 </svg>'''
 
 html = open(f"{SITE}/index.html").read()
 assert "<!--SIG_SVG-->" in html, "placeholder missing"
 open(f"{SITE}/index.html", "w").write(html.replace("<!--SIG_SVG-->", svg))
-print("injected", len(paths), "grouped strokes,", len(svg), "chars")
+print(f"injected {len(groups)} per-stroke fills, {len(svg)} chars")
+for g in groups:
+    print(f'  {g["name"]}: mask w {g["svg_w"]}, ink px {int(g["fill"].sum())}')

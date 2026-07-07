@@ -9,7 +9,7 @@
   /* ── the signing ─────────────────────────────────────────────────── */
 
   var strokes = Array.prototype.slice.call(
-    document.querySelectorAll("#sigmask .ms")
+    document.querySelectorAll("#sig .ms")
   );
   var done = false;
 
@@ -17,9 +17,9 @@
     if (done) return;
     done = true;
     strokes.forEach(function (p) { p.style.strokeDashoffset = 0; });
-    /* drop the mask entirely: the finished signature is the plain fill */
-    var fill = document.getElementById("sigfill");
-    if (fill) fill.removeAttribute("mask");
+    /* drop the masks entirely: the finished signature is the plain fills */
+    Array.prototype.forEach.call(document.querySelectorAll("#sig .sf"),
+      function (f) { f.removeAttribute("mask"); });
 
     if (skipFlip || reduced || !sig) {
       body.classList.remove("intro");
