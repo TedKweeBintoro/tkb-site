@@ -31,7 +31,8 @@ GROUPS = [
     ("Kwee",     [11, 9, 10, 12, 13, 14, 15],        0,   None),
     ("hyphen",   ["HYPHEN"],                         0,   8.0),
     ("Bdown",    ["SPINE"],                          0,   10.5),
-    ("Bintoro",  ["16R", 17, 21, 22, 23, "24R", 25, 26, 27, 28], 0, None),
+    ("Brest",    ["16R", 17],                      0,   None),
+    ("intoro",   [21, 22, 23, "24R", 25, 26, 27, 28], 0, None),
     ("tittle",   [29],                               260, None),   # beat before the drawing
     ("hair",     [30, 31],                           0,   None),
     ("headear",  [32],                               0,   8.5),
