@@ -140,24 +140,30 @@
       p.style.strokeOpacity = 0;
     });
 
-    var TOTAL = 1000;   /* the whole signing takes a second */
-    var SETTLE = 500;   /* beat before the page comes in */
+    var WORD_MS = 500;   /* the signature writes in half a second */
+    var FACE_MS = 1000;  /* the face takes the full second */
+    var SETTLE = 500;    /* beat before the page comes in */
 
-    /* every line — each pen run of the signature and each stroke of the
-       face is its own single-subpath mask path — starts at t0 and
-       finishes at TOTAL together, each drawn at its own pace */
+    /* every line starts at t0; the signature's lines complete at WORD_MS,
+       the face's at FACE_MS, each drawn at its own pace */
+    var durs = strokes.map(function (p) {
+      return p.closest("#sigface") ? FACE_MS : WORD_MS;
+    });
+    var TOTAL = Math.max(WORD_MS, FACE_MS);
+
     var t0 = null;
     function frame(ts) {
       if (done) return;
       if (t0 === null) t0 = ts;
-      var f = Math.max(0, Math.min(1, (ts - t0) / TOTAL));
+      var elapsed = ts - t0;
 
       for (var k = 0; k < strokes.length; k++) {
+        var f = Math.max(0, Math.min(1, elapsed / durs[k]));
         strokes[k].style.strokeDashoffset = lens[k] * (1 - f);
         strokes[k].style.strokeOpacity = 1;
       }
 
-      if (f >= 1) {
+      if (elapsed >= TOTAL) {
         window.setTimeout(function () { finish(false); }, SETTLE);
         return;
       }
