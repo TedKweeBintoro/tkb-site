@@ -7,6 +7,40 @@
   var face = document.getElementById("sigface");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ── layout: face centred on the essay, essay no wider than the words ── */
+
+  var essay = document.querySelector(".essay");
+  var pageEl = document.getElementById("page");
+  var colophon = document.querySelector(".colophon");
+  var wordEls = Array.prototype.slice.call(document.querySelectorAll(".word"));
+
+  function layout() {
+    /* small screens: cap the essay at the width of the row of words */
+    if (essay) {
+      if (window.matchMedia("(max-width: 720px)").matches && wordEls.length) {
+        var l = Infinity, r = -Infinity;
+        wordEls.forEach(function (w) {
+          var b = w.getBoundingClientRect();
+          if (b.left < l) l = b.left;
+          if (b.right > r) r = b.right;
+        });
+        if (r > l) essay.style.maxWidth = r - l + "px";
+      } else {
+        essay.style.maxWidth = "";
+      }
+    }
+    /* the background face sits on the essay block's vertical centre
+       (row 1 of #page; heights are transform-free layout metrics) */
+    if (pageEl && colophon) {
+      var y = pageEl.getBoundingClientRect().top +
+        (pageEl.clientHeight - colophon.offsetHeight) / 2;
+      document.documentElement.style.setProperty("--facey", y + "px");
+    }
+  }
+  window.addEventListener("resize", layout);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+  layout();
+
   /* ── the signing ─────────────────────────────────────────────────── */
 
   var strokes = Array.prototype.slice.call(
@@ -24,11 +58,13 @@
 
     if (skipFlip || reduced || !sig || !face) {
       body.classList.remove("intro");
+      layout();
       return;
     }
     var firstS = sig.getBoundingClientRect();
     var firstF = face.getBoundingClientRect();
     body.classList.remove("intro");
+    layout();   /* place the face before measuring its landing spot */
     var lastS = sig.getBoundingClientRect();
     var lastF = face.getBoundingClientRect();
 
@@ -171,23 +207,33 @@
   /* ── colophon: reveal the handwritten address ────────────────────── */
 
   var hw = document.getElementById("hw");
-  var words = Array.prototype.slice.call(document.querySelectorAll(".word"));
+  var words = wordEls;
   var restHref = "https://tedkweebintoro.com";
   var lastNet = null;   /* where the pointer is coming from */
+  var goTimer = null;   /* touch: pending redirect */
+
+  function cancelGo() {
+    if (goTimer) { window.clearTimeout(goTimer); goTimer = null; }
+  }
 
   function activate(word) {
     words.forEach(function (w) { w.classList.toggle("on", w === word); });
     if (!word) {
+      cancelGo();
       delete hw.dataset.active;
       delete hw.dataset.via;
       lastNet = null;
+      hw.style.removeProperty("--hc");
       hw.setAttribute("href", restHref);
       hw.setAttribute("aria-label", "tedkweebintoro");
       return;
     }
-    hw.dataset.via = lastNet || "";
+    if (hw.dataset.active !== word.dataset.net) {   /* re-activation keeps via */
+      hw.dataset.via = lastNet || "";
+      lastNet = word.dataset.net;
+    }
     hw.dataset.active = word.dataset.net;
-    lastNet = word.dataset.net;
+    hw.style.setProperty("--hc", word.style.getPropertyValue("--c"));
     hw.setAttribute("href", word.getAttribute("href"));
     hw.setAttribute("aria-label", word.textContent.replace(/\s+/g, " ") + " — " + word.getAttribute("href"));
   }
@@ -197,11 +243,17 @@
     word.addEventListener("focus", function () { activate(word); });
     word.addEventListener("blur", function () { activate(null); });
     word.addEventListener("click", function (e) {
-      /* first tap on touch devices previews; second follows the link */
-      if (!word.classList.contains("on") && window.matchMedia("(hover: none)").matches) {
-        e.preventDefault();
-        activate(word);
-      }
+      /* no hover to preview with: a tap writes the address out, holds it
+         a beat, then follows the link */
+      if (!window.matchMedia("(hover: none)").matches) return;
+      e.preventDefault();
+      cancelGo();
+      activate(word);
+      var href = word.getAttribute("href");
+      goTimer = window.setTimeout(function () {
+        goTimer = null;
+        window.location.href = href;
+      }, 1450);   /* 450ms reveal + a 1s hold */
     });
   });
 

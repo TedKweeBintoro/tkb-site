@@ -63,11 +63,12 @@ body {
   overflow: visible;
 }
 
-/* the face: by default (signing over, or no JS) it IS the page background */
+/* the face: by default (signing over, or no JS) it IS the page background;
+   JS keeps --facey on the essay block's vertical centre */
 #sigface {
   position: fixed;
   left: 50%;
-  top: 40%;
+  top: var(--facey, 50%);
   transform: translate(-50%, -50%);
   width: min(78vmin, 660px);
   height: auto;
@@ -137,6 +138,9 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 }
 
 .bio { text-align: justify; }
+
+/* the opening sentence, essay-fashion */
+.sc { font-variant-caps: small-caps; letter-spacing: 0.035em; }
 
 /* M spans line-1 cap top to line-2 baseline, flush with the copy block
    (Redaction: cap .70em, font box 1.2em; bio line 1.58em) */
@@ -235,19 +239,68 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 
 .slot { display: flex; align-items: flex-end; }
 
-.hw img {
+/* the ink is a CSS mask over a paintable background, so the whole address
+   can take the hovered word's colour (--hc, set by JS) */
+.hw .c, .hw .f {
   display: block;
   height: calc(var(--hws) * var(--fh) * 1px);
   margin-bottom: calc(var(--hws) * var(--fb) * -1px); /* hang descenders below the shared baseline */
+  background-color: var(--hc, var(--ink));
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: auto 100%;
+  mask-size: auto 100%;
   pointer-events: none;
   user-select: none;
 }
 
+.pre .f[data-for~="instagram"] {
+  -webkit-mask-image: url("../../images/handwriting/instagram.png");
+  mask-image: url("../../images/handwriting/instagram.png");
+}
+.pre .f[data-for~="twitter"] {
+  -webkit-mask-image: url("../../images/handwriting/xcom.png");
+  mask-image: url("../../images/handwriting/xcom.png");
+}
+.pre .f[data-for~="linkedin"] {
+  -webkit-mask-image: url("../../images/handwriting/linkedin.png");
+  mask-image: url("../../images/handwriting/linkedin.png");
+}
+.pre .f[data-for~="personal"] {
+  -webkit-mask-image: url("../../images/handwriting/ted-at.png");
+  mask-image: url("../../images/handwriting/ted-at.png");
+}
+#mid-ted {
+  -webkit-mask-image: url("../../images/handwriting/tedkweebintoro.png");
+  mask-image: url("../../images/handwriting/tedkweebintoro.png");
+}
+#mid-at {
+  -webkit-mask-image: url("../../images/handwriting/at.png");
+  mask-image: url("../../images/handwriting/at.png");
+}
+#mid-katy {
+  -webkit-mask-image: url("../../images/handwriting/katytechnologies.png");
+  mask-image: url("../../images/handwriting/katytechnologies.png");
+}
+.post .f[data-frag="period"] {
+  -webkit-mask-image: url("../../images/handwriting/period.png");
+  mask-image: url("../../images/handwriting/period.png");
+}
+.post .f[data-for~="substack"]:not([data-frag]) {
+  -webkit-mask-image: url("../../images/handwriting/substack.png");
+  mask-image: url("../../images/handwriting/substack.png");
+}
+.post .f[data-for~="personal"] {
+  -webkit-mask-image: url("../../images/handwriting/dotcom.png");
+  mask-image: url("../../images/handwriting/dotcom.png");
+}
+
 .hw .c {
   width: calc(var(--hws) * var(--fw) * 1px);
-  object-fit: cover;
-  object-position: left bottom;
-  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1), opacity 0.3s ease;
+  -webkit-mask-position: left bottom;
+  mask-position: left bottom;
+  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1), opacity 0.3s ease,
+    background-color 0.25s ease;
 }
 
 /* business email swaps the centre word for katytechnologies */
@@ -258,10 +311,13 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
   opacity: 1;
 }
 /* arriving anywhere but from personal email: keep tedkweebintoro's own
-   "ted", write the @ after it, and skip the ted-at prefix */
+   "ted", write the @ after it, and skip the ted-at prefix; the cut mask
+   variant blanks the k-descender that would dangle below the d */
 .hw[data-active="business"]:not([data-via="personal"]) #mid-ted {
   width: calc(var(--hws) * var(--fcut) * 1px);
   opacity: 1;
+  -webkit-mask-image: url("../../images/handwriting/ted-cut.png");
+  mask-image: url("../../images/handwriting/ted-cut.png");
 }
 .hw[data-active="business"]:not([data-via="personal"]) #mid-at {
   width: calc(var(--hws) * var(--fw) * 1px);
@@ -276,11 +332,11 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 .hw .f {
   width: 0;
   opacity: 0;
-  object-fit: cover;
-  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1), opacity 0.3s ease;
+  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1), opacity 0.3s ease,
+    background-color 0.25s ease;
 }
-.pre .f  { object-position: right bottom; }
-.post .f { object-position: left bottom; }
+.pre .f  { -webkit-mask-position: right bottom; mask-position: right bottom; }
+.post .f { -webkit-mask-position: left bottom;  mask-position: left bottom; }
 
 /* the name huddles closer to the slashes */
 .slot.mid { transition: margin-left 0.45s cubic-bezier(0.6, 0.15, 0.15, 1); }
@@ -298,7 +354,7 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 }
 
 /* small breathing gap only around the period fragment */
-.post .f[src*="period"] { margin-left: calc(var(--hws) * 14px); margin-right: calc(var(--hws) * 10px); }
+.post .f[data-frag="period"] { margin-left: calc(var(--hws) * 14px); margin-right: calc(var(--hws) * 10px); }
 
 /* ─── colophon: the words ────────────────────────────────────────────── */
 
@@ -344,6 +400,6 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 /* ─── reduced motion ─────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .essay, .colophon, .hw .f, .word, .lnk,
+  .essay, .colophon, .hw .c, .hw .f, .slot.mid, .word, .lnk,
   #sig.flipping, #sigface.flipping { transition: none !important; }
 }
