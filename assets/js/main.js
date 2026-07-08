@@ -140,11 +140,12 @@
       p.style.strokeOpacity = 0;
     });
 
-    var TOTAL = 1500;   /* the whole signing takes a second and a half */
+    var TOTAL = 1000;   /* the whole signing takes a second */
     var SETTLE = 500;   /* beat before the page comes in */
 
-    /* every line — the signature and each stroke of the face — starts at
-       t0 and finishes at TOTAL together, each drawn at its own pace */
+    /* every line — each pen run of the signature and each stroke of the
+       face is its own single-subpath mask path — starts at t0 and
+       finishes at TOTAL together, each drawn at its own pace */
     var t0 = null;
     function frame(ts) {
       if (done) return;

@@ -195,14 +195,19 @@ def trace(mask):
     return "".join(parts)
 
 def chunk(i, g):
+    # one <path> PER SUBPATH: svg restarts the dash pattern at every moveto,
+    # so a shared multi-subpath dash would draw each subpath at the full
+    # path's rate (short ones finish early); separate paths each carry
+    # their own length and all complete at the same shared fraction
     d_fill = trace(g["fill"])
-    d_line = "".join(
-        f"M{s[0][0]:.1f},{s[0][1]:.1f}" + "".join(f"L{x:.1f},{y:.1f}" for x, y in s[1:])
+    lines = "\n".join(
+        f'<path class="ms" data-g="{g["name"]}" d="M{s[0][0]:.1f},{s[0][1]:.1f}'
+        + "".join(f"L{x:.1f},{y:.1f}" for x, y in s[1:])
+        + f'" stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="{g["svg_w"]}"/>'
         for s in g["subs"])
-    pause_attr = f' data-pause="{g["pause"]}"' if g["pause"] else ""
     return f'''<mask id="sm{i}" maskUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}">
 <rect width="{W}" height="{H}" fill="#000"/>
-<path class="ms" data-g="{g["name"]}" d="{d_line}" stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="{g["svg_w"]}"{pause_attr}/>
+{lines}
 </mask>
 <path class="sf" d="{d_fill}" fill="currentColor" fill-rule="evenodd" mask="url(#sm{i})"/>'''
 
