@@ -7,6 +7,26 @@
   var face = document.getElementById("sigface");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /* ── the closing line, drawn fresh each visit ────────────────────── */
+
+  var closer = document.getElementById("bio-close");
+  if (closer) {
+    var closers = [
+      "Sometimes I write.",
+      "I don’t have a driver’s license yet, so I have to scooter everywhere.",
+      "I’ve been trying to be more concise lately.",
+      "Every day is a cultural revolution if you lack taste.",
+      "I bought FSD for my Tesla and it ran over my foot.",
+      "I was dropped on my head as a baby but not on any of the important cortexes.",
+      "At the end of the day, there is night.",
+      "I am an Asian-passing white man.",
+      "In 2016, I was the Democratic nominee for president, becoming the first woman to win a presidential nomination by a major U.S. political party and the first woman to win the popular vote for U.S. president.",
+      "Sometimes people get upset when I do “the accent.”"
+    ];
+    closer.textContent = closers[Math.floor(Math.random() * closers.length)]
+      .replace(/\bI /g, "I ");   /* the bio never strands a lone I */
+  }
+
   /* ── layout: face centred on the essay, essay no wider than the words ── */
 
   var essay = document.querySelector(".essay");
