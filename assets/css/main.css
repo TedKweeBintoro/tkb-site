@@ -17,12 +17,18 @@
 }
 
 :root {
-  --paper: #fdfdf9;
+  --paper: #faf6ec;
   --ink: #111110;
   --ink-soft: #3d3d3a;
   --hairline: #d8d6cd;
   --hws: 0.235;           /* handwriting display scale */
   --sn-col: 15.5rem;      /* sidenote column width */
+  /* the sheet: fine tooth + sizing mottle + edge shading over warm paper */
+  --paperbg:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.28  0 0 0 0 0.23  0 0 0 0 0.13  0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='560'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.011' numOctaves='3' seed='9' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.45  0 0 0 0 0.36  0 0 0 0 0.18  0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='560' height='560' filter='url(%23m)'/%3E%3C/svg%3E"),
+    radial-gradient(140% 110% at 50% 42%, rgba(0, 0, 0, 0) 58%, rgba(103, 78, 40, 0.075)),
+    var(--paper);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -34,7 +40,7 @@ body {
   overflow: hidden;
   display: grid;
   grid-template-rows: auto 1fr;
-  background: var(--paper);
+  background: var(--paperbg);
   color: var(--ink);
   font-family: "Redaction", "New Century Schoolbook", Georgia, serif;
   -webkit-font-smoothing: antialiased;
@@ -61,6 +67,7 @@ body {
   height: auto;
   color: var(--ink);
   overflow: visible;
+  filter: url(#inkgrain);
 }
 
 /* the face: by default (signing over, or no JS) it IS the page background;
@@ -77,6 +84,7 @@ body {
   z-index: 0;
   pointer-events: none;
   overflow: visible;
+  filter: url(#inkgrain);
 }
 
 /* intro takeover: the signing is the first (and only) thing on screen */
@@ -88,7 +96,7 @@ body.intro #sigwrap {
   display: grid;
   place-items: center;
   padding: 0 6vw;
-  background: var(--paper);
+  background: var(--paperbg);
 }
 body.intro #sigface {
   position: static;
@@ -139,7 +147,8 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 
 .bio { text-align: justify; }
 
-/* the opening sentence, essay-fashion */
+/* the opening phrase in full caps; the name in small caps */
+.uc { text-transform: uppercase; letter-spacing: 0.035em; }
 .sc { font-variant-caps: small-caps; letter-spacing: 0.035em; }
 
 /* M spans line-1 cap top to line-2 baseline, flush with the copy block
@@ -274,10 +283,6 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
   -webkit-mask-image: url("../../images/handwriting/tedkweebintoro.png");
   mask-image: url("../../images/handwriting/tedkweebintoro.png");
 }
-#mid-at {
-  -webkit-mask-image: url("../../images/handwriting/at.png");
-  mask-image: url("../../images/handwriting/at.png");
-}
 #mid-katy {
   -webkit-mask-image: url("../../images/handwriting/katytechnologies.png");
   mask-image: url("../../images/handwriting/katytechnologies.png");
@@ -303,29 +308,13 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
     background-color 0.25s ease;
 }
 
-/* business email swaps the centre word for katytechnologies */
+/* business email swaps the centre word for katytechnologies; both emails
+   share the same handwritten ted@ prefix */
 .hw .c.swap { width: 0; opacity: 0; }
 .hw[data-active="business"] #mid-ted { width: 0; opacity: 0; }
 .hw[data-active="business"] #mid-katy {
   width: calc(var(--hws) * var(--fw) * 1px);
   opacity: 1;
-}
-/* arriving anywhere but from personal email: keep tedkweebintoro's own
-   "ted", write the @ after it, and skip the ted-at prefix; the cut mask
-   variant blanks the k-descender that would dangle below the d */
-.hw[data-active="business"]:not([data-via="personal"]) #mid-ted {
-  width: calc(var(--hws) * var(--fcut) * 1px);
-  opacity: 1;
-  -webkit-mask-image: url("../../images/handwriting/ted-cut.png");
-  mask-image: url("../../images/handwriting/ted-cut.png");
-}
-.hw[data-active="business"]:not([data-via="personal"]) #mid-at {
-  width: calc(var(--hws) * var(--fw) * 1px);
-  opacity: 1;
-}
-.hw[data-active="business"]:not([data-via="personal"]) .pre .f[data-for~="business"] {
-  width: 0;
-  opacity: 0;
 }
 
 /* fragments reveal by growing from the centre word outward */

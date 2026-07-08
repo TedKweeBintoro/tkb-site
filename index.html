@@ -12,8 +12,7 @@
 <link rel="icon" type="image/svg+xml" href="images/face.svg">
 <link rel="preload" href="assets/fonts/Redaction-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/Redaction-Italic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="images/handwriting/ted-cut.png" as="image">
-<link rel="stylesheet" href="assets/css/main.css?v=5">
+<link rel="stylesheet" href="assets/css/main.css?v=6">
 </head>
 <body>
 <script>document.body.classList.add('intro','js');</script>
@@ -97,10 +96,21 @@
 </div>
 </div>
 
+<!-- distressed-ink filter for the signature and face -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <filter id="inkgrain" x="-4%" y="-8%" width="108%" height="116%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="11" result="warp"/>
+    <feDisplacementMap in="SourceGraphic" in2="warp" scale="1.8" xChannelSelector="R" yChannelSelector="G" result="rough"/>
+    <feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" seed="4" result="spk"/>
+    <feColorMatrix in="spk" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1.8 -0.68" result="pin"/>
+    <feComposite in="rough" in2="pin" operator="out"/>
+  </filter>
+</svg>
+
 <main id="page">
   <section class="essay" aria-label="About">
     <p class="bio">
-      <span class="dropcap">M</span><span class="sc">y name is Ted<a class="snref" href="#fn1" role="doc-noteref" aria-describedby="fn1"><sup>1<span class="tip" role="tooltip" id="fn1">legally Michael</span></sup></a>
+      <span class="dropcap">M</span><span class="uc">y name is</span> <span class="sc">Ted<a class="snref" href="#fn1" role="doc-noteref" aria-describedby="fn1"><sup>1<span class="tip" role="tooltip" id="fn1">legally Michael</span></sup></a>
       Kwee&#8209;Bintoro.</span> I&nbsp;am the Chief Operating Officer<a class="snref" href="#fn2" role="doc-noteref" aria-describedby="fn2"><sup>2<span class="tip" role="tooltip" id="fn2">but in a self-aware kind of way</span></sup></a>
       of <a class="lnk" href="https://www.katytechnologies.com" rel="noopener">Katy Technologies</a><a class="snref" href="#fn3" role="doc-noteref" aria-describedby="fn3"><sup>3<span class="tip" role="tooltip" id="fn3">a technology consulting firm I founded with two of my best friends from high school</span></sup></a>.
       I&nbsp;graduated <i>summa cum laude</i> from the University of Pennsylvania in 2026 with honors
@@ -119,8 +129,7 @@
         <span class="f" data-for="personal business" style="--fw:592;--fh:153;--fb:43"></span>
       </span>
       <span class="slot mid">
-        <span class="c" id="mid-ted" style="--fw:1059;--fh:147;--fb:43;--fcut:348"></span>
-        <span class="c swap" id="mid-at" style="--fw:155;--fh:153;--fb:30"></span>
+        <span class="c" id="mid-ted" style="--fw:1059;--fh:147;--fb:43"></span>
         <span class="c swap" id="mid-katy" data-for="business" style="--fw:1215;--fh:260;--fb:137"></span>
       </span>
       <span class="slot post">
@@ -135,11 +144,11 @@
       <a class="word" data-net="linkedin"  style="--c:#0A66C2" href="https://linkedin.com/in/tedkweebintoro" rel="noopener">linkedin</a>
       <a class="word" data-net="substack"  style="--c:#FF6719" href="https://tedkweebintoro.substack.com" rel="noopener">substack</a>
       <a class="word" data-net="personal"  style="--c:#006633" href="mailto:ted@tedkweebintoro.com">personal&nbsp;email</a>
-      <a class="word" data-net="business"  style="--c:#06192D" href="mailto:ted@katytechnologies.com">business&nbsp;email</a>
+      <a class="word" data-net="business"  style="--c:#071A33" href="mailto:ted@katytechnologies.com">business&nbsp;email</a>
     </nav>
   </footer>
 </main>
 
-<script src="assets/js/main.js?v=5"></script>
+<script src="assets/js/main.js?v=6"></script>
 </body>
 </html>

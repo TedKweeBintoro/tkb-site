@@ -209,7 +209,6 @@
   var hw = document.getElementById("hw");
   var words = wordEls;
   var restHref = "https://tedkweebintoro.com";
-  var lastNet = null;   /* where the pointer is coming from */
   var goTimer = null;   /* touch: pending redirect */
 
   function cancelGo() {
@@ -221,16 +220,10 @@
     if (!word) {
       cancelGo();
       delete hw.dataset.active;
-      delete hw.dataset.via;
-      lastNet = null;
       hw.style.removeProperty("--hc");
       hw.setAttribute("href", restHref);
       hw.setAttribute("aria-label", "tedkweebintoro");
       return;
-    }
-    if (hw.dataset.active !== word.dataset.net) {   /* re-activation keeps via */
-      hw.dataset.via = lastNet || "";
-      lastNet = word.dataset.net;
     }
     hw.dataset.active = word.dataset.net;
     hw.style.setProperty("--hc", word.style.getPropertyValue("--c"));
