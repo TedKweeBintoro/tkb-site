@@ -71,7 +71,10 @@
   function finish(skipFlip) {
     if (done) return;
     done = true;
-    strokes.forEach(function (p) { p.style.strokeDashoffset = 0; });
+    strokes.forEach(function (p) {
+      p.style.strokeDashoffset = 0;
+      p.style.strokeOpacity = 1;
+    });
     /* drop the masks entirely: the finished signature is the plain fills */
     Array.prototype.forEach.call(document.querySelectorAll("#sigstage .sf"),
       function (f) { f.removeAttribute("mask"); });
@@ -132,6 +135,9 @@
     strokes.forEach(function (p, i) {
       p.style.strokeDasharray = lens[i] + " " + lens[i];
       p.style.strokeDashoffset = lens[i];
+      /* round caps paint zero-length dash dots at subpath starts; keep
+         strokes invisible until the pen reaches them */
+      p.style.strokeOpacity = 0;
     });
 
     var SPEED = 1050;      /* px of ink per second */
@@ -163,6 +169,7 @@
       for (var k = 0; k < strokes.length; k++) {
         strokes[k].style.strokeDashoffset =
           k < i ? 0 : k === i ? lens[k] - dist : lens[k];
+        strokes[k].style.strokeOpacity = k <= i ? 1 : 0;
       }
       window.requestAnimationFrame(frame);
     }

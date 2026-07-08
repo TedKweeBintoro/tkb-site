@@ -195,6 +195,8 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
   box-shadow: 3px 3px 0 rgba(17, 17, 16, 0.12);
   font-weight: 400;
   font-style: italic;
+  font-variant: normal;   /* fn1 sits inside the small-caps name span */
+  text-transform: none;
   font-size: clamp(12px, 0.55vw + 8px, 14px);
   letter-spacing: 0;
   line-height: 1.45;
