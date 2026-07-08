@@ -39,7 +39,7 @@ body {
   height: 100dvh;
   overflow: hidden;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 1fr;
   background: var(--paperbg);
   color: var(--ink);
   font-family: "Redaction", "New Century Schoolbook", Georgia, serif;
@@ -53,25 +53,34 @@ body {
 /* two sibling SVGs: the lettering flies to the header when the signing
    ends; the face doodle drifts into the page background and fades */
 
+/* at rest the signature IS the colophon's centre word: sized like the old
+   masked span (the word image is 1059px wide, baseline 43px up), recolours
+   with the hovered word via --hc (fills are currentColor), and collapses
+   for the business swap. 3px of padding gives the grain room to breathe;
+   the negative margins cancel it out of the layout. */
 #sigwrap {
-  --sigw: min(63vw, 485px);   /* full-signature width the parts are cut from */
-  display: flex;
-  justify-content: center;
-  padding: clamp(14px, 4.5vh, 46px) 16px 0;
-  position: relative;
-  z-index: 2;
+  display: block;
+  width: calc(var(--hws) * 1059px + 6px);
+  padding: 3px;
+  margin: -3px -3px calc(var(--hws) * -43px - 3px) -3px; /* hang descenders */
+  overflow: hidden;
+  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1), opacity 0.3s ease;
 }
+#sigwrap.flying { overflow: visible; }   /* let the FLIP leave the box */
 #sigstage { display: flex; align-items: flex-start; }
 #sig {
-  width: calc(var(--sigw) * var(--lr));
+  display: block;
+  width: calc(var(--hws) * var(--lw, 1084) * 1px);
   height: auto;
-  color: var(--ink);
+  color: var(--hc, var(--ink));
   overflow: visible;
   filter: url(#inkgrain);
+  transition: color 0.25s ease;
 }
 
 /* the face: by default (signing over, or no JS) it IS the page background;
-   JS keeps --facey on the essay block's vertical centre */
+   JS keeps --facey on the essay block's vertical centre. It lives inside
+   #page now, so it slips behind the text with a negative z-index. */
 #sigface {
   position: fixed;
   left: 50%;
@@ -81,13 +90,14 @@ body {
   height: auto;
   color: var(--ink);
   opacity: 0.05;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   overflow: visible;
   filter: url(#inkgrain);
 }
 
-/* intro takeover: the signing is the first (and only) thing on screen */
+/* intro takeover: the signing is the first (and only) thing on screen
+   (visibility beats the hidden #page it sits inside) */
 body.intro #sigwrap {
   --sigw: min(80vw, 730px);
   position: fixed;
@@ -95,9 +105,14 @@ body.intro #sigwrap {
   z-index: 10;
   display: grid;
   place-items: center;
+  width: auto;
   padding: 0 6vw;
+  margin: 0;
+  overflow: visible;
+  visibility: visible;
   background: var(--paperbg);
 }
+body.intro #sig { width: calc(var(--sigw) * var(--lr)); }
 body.intro #sigface {
   position: static;
   width: calc(var(--sigw) * var(--fr));
@@ -107,9 +122,9 @@ body.intro #sigface {
   pointer-events: auto;
 }
 
-#sig.flipping { transition: transform 0.78s cubic-bezier(0.22, 0.75, 0.2, 1); }
+#sig.flipping { transition: transform 0.6s cubic-bezier(0.22, 0.75, 0.2, 1); }
 #sigface.flipping {
-  transition: transform 1.2s cubic-bezier(0.3, 0.6, 0.2, 1), opacity 1.2s ease;
+  transition: transform 0.9s cubic-bezier(0.3, 0.6, 0.2, 1), opacity 0.9s ease;
 }
 
 /* ─── page ───────────────────────────────────────────────────────────── */
@@ -124,15 +139,18 @@ body.intro #sigface {
 }
 body.intro #page { visibility: hidden; }
 
-.essay, .colophon {
-  transition: opacity 0.7s ease, transform 0.7s ease;
+/* the entrance animates the essay and the word row only — the colophon
+   itself must stay untransformed (opacity/transform there would swallow
+   the fixed-position intro stage and the background face inside it) */
+.essay, .words {
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
-body.js.intro .essay, body.js.intro .colophon {
+body.js.intro .essay, body.js.intro .words {
   opacity: 0;
   transform: translateY(14px);
 }
-body.js:not(.intro) .essay { transition-delay: 0.22s; }
-body.js:not(.intro) .colophon { transition-delay: 0.42s; }
+body.js:not(.intro) .essay { transition-delay: 0.08s; }
+body.js:not(.intro) .words { transition-delay: 0.2s; }
 
 /* ─── essay, gwern-style ─────────────────────────────────────────────── */
 
@@ -261,6 +279,7 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
   mask-repeat: no-repeat;
   -webkit-mask-size: auto 100%;
   mask-size: auto 100%;
+  filter: url(#inkgrain);   /* match the signature's distressed ink */
   pointer-events: none;
   user-select: none;
 }
@@ -280,10 +299,6 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 .pre .f[data-for~="personal"] {
   -webkit-mask-image: url("../../images/handwriting/ted-at.png");
   mask-image: url("../../images/handwriting/ted-at.png");
-}
-#mid-ted {
-  -webkit-mask-image: url("../../images/handwriting/tedkweebintoro.png");
-  mask-image: url("../../images/handwriting/tedkweebintoro.png");
 }
 #mid-katy {
   -webkit-mask-image: url("../../images/handwriting/katytechnologies.png");
@@ -313,7 +328,7 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
 /* business email swaps the centre word for katytechnologies; both emails
    share the same handwritten ted@ prefix */
 .hw .c.swap { width: 0; opacity: 0; }
-.hw[data-active="business"] #mid-ted { width: 0; opacity: 0; }
+.hw[data-active="business"] #sigwrap { width: 0; opacity: 0; }
 .hw[data-active="business"] #mid-katy {
   width: calc(var(--hws) * var(--fw) * 1px);
   opacity: 1;
@@ -384,13 +399,13 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
   :root { --hws: 0.125; }
 }
 @media (max-height: 620px) {
-  #sigwrap { padding-top: 10px; --sigw: min(46vw, 365px); }
+  body.intro #sigwrap { --sigw: min(46vw, 365px); }
   .essay { font-size: clamp(13px, 1.1vh + 8px, 16px); }
 }
 
 /* ─── reduced motion ─────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .essay, .colophon, .hw .c, .hw .f, .slot.mid, .word, .lnk,
+  .essay, .words, .hw .c, .hw .f, .slot.mid, .word, .lnk, #sigwrap, #sig,
   #sig.flipping, #sigface.flipping { transition: none !important; }
 }

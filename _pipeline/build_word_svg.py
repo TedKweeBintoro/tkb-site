@@ -117,17 +117,16 @@ g_intoro = chain(runs[c_intoro], tuple(g_weeb[-1][-1]))
 g_tittle = chain(runs[c_tittle], tuple(g_intoro[-1][-1]))
 
 GROUPS = [
-    ("tedk",     g_tedk,                        0),
-    ("weeb",     g_weeb,                        0),
-    ("intoro",   g_intoro,                      0),
-    ("tittle",   g_tittle,                      260),   # beat before the drawing
+    # the whole signature is one gesture (the dash flows through every pen
+    # run; subpath hops are instant); the face draws on a parallel track
+    ("word",     g_tedk + g_weeb + g_intoro + g_tittle, 0),
     ("hair",     [face_pts(30), face_pts(31)],  0),
     ("headear",  [face_pts(32)],                0),
     ("eyes",     [face_pts(33), face_pts(34), face_pts(35)], 0),
     ("mouth",    [face_pts(36)],                0),
     ("innerear", [face_pts(37), face_pts(38)],  0),
 ]
-FACE_FROM = 4
+FACE_FROM = 1
 
 groups = [{"name": n, "subs": p, "pause": pz} for n, p, pz in GROUPS]
 
@@ -218,14 +217,14 @@ LW = FX + 3   # lettering viewBox runs to the face box, keeping the gap
 letter_chunks = [chunk(i, g) for i, g in enumerate(groups[:FACE_FROM])]
 face_chunks = [chunk(FACE_FROM + i, g) for i, g in enumerate(groups[FACE_FROM:])]
 
-svg = f'''<div id="sigstage" style="--lr:{LW/W:.4f};--fr:{FW/W:.4f};--fyr:{FY/W:.4f}">
-<svg id="sig" viewBox="0 0 {LW} {H}" role="img" aria-label="Ted Kwee-Bintoro's signature" xmlns="http://www.w3.org/2000/svg">
+svg = f'''<span id="sigstage" style="--lw:{LW};--lr:{LW/W:.4f};--fr:{FW/W:.4f};--fyr:{FY/W:.4f}">
+<svg id="sig" viewBox="0 0 {LW} {H}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
 {chr(10).join(letter_chunks)}
 </svg>
 <svg id="sigface" viewBox="{FX} {FY} {FW} {FH}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
 {chr(10).join(face_chunks)}
 </svg>
-</div>'''
+</span>'''
 
 html = open(f"{SITE}/index.html").read()
 assert "<!--SIG_SVG-->" in html, "placeholder missing"

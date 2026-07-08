@@ -108,6 +108,8 @@
       fdy + "px)) scale(" + fsc + ")";
     face.style.opacity = 1;
 
+    var wrap = document.getElementById("sigwrap");
+    if (wrap) wrap.classList.add("flying");   /* don't clip the flight */
     void sig.getBoundingClientRect();
     sig.classList.add("flipping");
     face.classList.add("flipping");
@@ -116,6 +118,7 @@
     face.style.opacity = "";
     sig.addEventListener("transitionend", function te() {
       sig.classList.remove("flipping");
+      if (wrap) wrap.classList.remove("flying");
       sig.removeEventListener("transitionend", te);
     });
     face.addEventListener("transitionend", function tf(e) {
@@ -141,35 +144,36 @@
     });
 
     var SPEED = 1050;      /* px of ink per second */
-    var LIFT = 90;         /* ms pen-lift between strokes */
-    var t0 = null;
+    var LIFT = 90;         /* ms pen-lift between face strokes */
 
+    /* two parallel tracks: the signature (stroke 0) writes in one gesture
+       while the face (strokes 1+) is drawn alongside it, in order */
+    var starts = [];
+    var tFace = 0;
+    var durs = lens.map(function (L) { return (L / SPEED) * 1000; });
+    strokes.forEach(function (p, i) {
+      if (i === 0) { starts[i] = 0; return; }
+      starts[i] = tFace;
+      tFace += durs[i] + LIFT + pauses[i];
+    });
+    var total = Math.max(durs[0] || 0, tFace);
+
+    var t0 = null;
     function frame(ts) {
       if (done) return;
       if (t0 === null) t0 = ts;
       var elapsed = ts - t0;
-      var travelled = 0;
-      var i = 0;
-
-      while (i < strokes.length) {
-        var need = (lens[i] / SPEED) * 1000 + LIFT + pauses[i];
-        if (elapsed < travelled + need) break;
-        travelled += need;
-        i++;
-      }
-
-      if (i >= strokes.length) {
-        window.setTimeout(function () { finish(false); }, 180);
-        return;
-      }
-
-      var local = Math.max(0, elapsed - travelled);
-      var dist = Math.min(lens[i], (local / 1000) * SPEED);
 
       for (var k = 0; k < strokes.length; k++) {
-        strokes[k].style.strokeDashoffset =
-          k < i ? 0 : k === i ? lens[k] - dist : lens[k];
-        strokes[k].style.strokeOpacity = k <= i ? 1 : 0;
+        var local = elapsed - starts[k];
+        var dist = Math.max(0, Math.min(lens[k], (local / 1000) * SPEED));
+        strokes[k].style.strokeDashoffset = lens[k] - dist;
+        strokes[k].style.strokeOpacity = local > 0 ? 1 : 0;
+      }
+
+      if (elapsed >= total) {
+        window.setTimeout(function () { finish(false); }, 60);
+        return;
       }
       window.requestAnimationFrame(frame);
     }
@@ -177,7 +181,7 @@
 
     /* escape hatches: click to skip, hard cap in case of jank */
     document.addEventListener("pointerdown", function () { finish(false); }, { once: true });
-    window.setTimeout(function () { finish(false); }, 8000);
+    window.setTimeout(function () { finish(false); }, 5000);
   }
 
   function start() {
