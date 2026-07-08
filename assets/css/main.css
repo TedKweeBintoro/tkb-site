@@ -60,14 +60,18 @@ body {
    the negative margins cancel it out of the layout. */
 #sigwrap {
   display: block;
-  width: calc(var(--hws) * 1059px + 6px);
-  padding: 3px;
-  margin: -3px -3px calc(var(--hws) * -43px - 3px) -3px; /* hang descenders */
+  width: calc(var(--hws) * 1059px);
+  margin-bottom: calc(var(--hws) * -43px);  /* hang the descenders */
   overflow: hidden;
-  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1), opacity 0.3s ease;
+  /* width only — never opacity: the fixed-position background face lives
+     inside this wrapper, and ancestor opacity would take it down too */
+  transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1);
 }
 #sigwrap.flying { overflow: visible; }   /* let the FLIP leave the box */
 #sigstage { display: flex; align-items: flex-start; }
+/* the svgs keep their size while the wrapper collapses — the business
+   swap must CROP the word from the right, not scale it away */
+#sigstage svg { flex-shrink: 0; }
 #sig {
   display: block;
   width: calc(var(--hws) * var(--lw, 1084) * 1px);
@@ -328,7 +332,7 @@ body.js:not(.intro) .words { transition-delay: 0.2s; }
 /* business email swaps the centre word for katytechnologies; both emails
    share the same handwritten ted@ prefix */
 .hw .c.swap { width: 0; opacity: 0; }
-.hw[data-active="business"] #sigwrap { width: 0; opacity: 0; }
+.hw[data-active="business"] #sigwrap { width: 0; }
 .hw[data-active="business"] #mid-katy {
   width: calc(var(--hws) * var(--fw) * 1px);
   opacity: 1;

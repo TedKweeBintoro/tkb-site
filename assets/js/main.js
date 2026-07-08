@@ -132,9 +132,6 @@
     if (!strokes.length || reduced) { finish(true); return; }
 
     var lens = strokes.map(function (p) { return p.getTotalLength(); });
-    var pauses = strokes.map(function (p) {
-      return Number(p.getAttribute("data-pause")) || 0;
-    });
     strokes.forEach(function (p, i) {
       p.style.strokeDasharray = lens[i] + " " + lens[i];
       p.style.strokeDashoffset = lens[i];
@@ -143,36 +140,24 @@
       p.style.strokeOpacity = 0;
     });
 
-    var SPEED = 1050;      /* px of ink per second */
-    var LIFT = 90;         /* ms pen-lift between face strokes */
+    var TOTAL = 1000;   /* the whole signing takes a second */
+    var SETTLE = 500;   /* beat before the page comes in */
 
-    /* two parallel tracks: the signature (stroke 0) writes in one gesture
-       while the face (strokes 1+) is drawn alongside it, in order */
-    var starts = [];
-    var tFace = 0;
-    var durs = lens.map(function (L) { return (L / SPEED) * 1000; });
-    strokes.forEach(function (p, i) {
-      if (i === 0) { starts[i] = 0; return; }
-      starts[i] = tFace;
-      tFace += durs[i] + LIFT + pauses[i];
-    });
-    var total = Math.max(durs[0] || 0, tFace);
-
+    /* every line — the signature and each stroke of the face — starts at
+       t0 and finishes at TOTAL together, each drawn at its own pace */
     var t0 = null;
     function frame(ts) {
       if (done) return;
       if (t0 === null) t0 = ts;
-      var elapsed = ts - t0;
+      var f = Math.max(0, Math.min(1, (ts - t0) / TOTAL));
 
       for (var k = 0; k < strokes.length; k++) {
-        var local = elapsed - starts[k];
-        var dist = Math.max(0, Math.min(lens[k], (local / 1000) * SPEED));
-        strokes[k].style.strokeDashoffset = lens[k] - dist;
-        strokes[k].style.strokeOpacity = local > 0 ? 1 : 0;
+        strokes[k].style.strokeDashoffset = lens[k] * (1 - f);
+        strokes[k].style.strokeOpacity = 1;
       }
 
-      if (elapsed >= total) {
-        window.setTimeout(function () { finish(false); }, 60);
+      if (f >= 1) {
+        window.setTimeout(function () { finish(false); }, SETTLE);
         return;
       }
       window.requestAnimationFrame(frame);
@@ -181,7 +166,7 @@
 
     /* escape hatches: click to skip, hard cap in case of jank */
     document.addEventListener("pointerdown", function () { finish(false); }, { once: true });
-    window.setTimeout(function () { finish(false); }, 5000);
+    window.setTimeout(function () { finish(false); }, 4000);
   }
 
   function start() {
@@ -263,13 +248,23 @@
   }
 
   words.forEach(function (word) {
-    word.addEventListener("mouseenter", function () { activate(word); });
+    word.addEventListener("mouseenter", function () {
+      word.__enterAt = performance.now();
+      activate(word);
+    });
     word.addEventListener("focus", function () { activate(word); });
     word.addEventListener("blur", function () { activate(null); });
     word.addEventListener("click", function (e) {
-      /* no hover to preview with: a tap writes the address out, holds it
-         a beat, then follows the link */
-      if (!window.matchMedia("(hover: none)").matches) return;
+      /* touch devices and phone-width windows: a tap writes the address
+         out, holds it a beat, then follows the link */
+      var compact = window.matchMedia("(hover: none)").matches ||
+                    window.matchMedia("(max-width: 720px)").matches;
+      if (!compact) return;
+      /* a hover that has been open a while means the address is already
+         on show — follow the link straight away (a tap's synthetic
+         mouseenter lands just before its click) */
+      var sameGesture = performance.now() - (word.__enterAt || 0) < 700;
+      if (!sameGesture && hw.dataset.active === word.dataset.net) return;
       e.preventDefault();
       cancelGo();
       activate(word);
