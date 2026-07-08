@@ -140,7 +140,7 @@
       p.style.strokeOpacity = 0;
     });
 
-    var TOTAL = 1000;   /* the whole signing takes a second */
+    var TOTAL = 750;    /* the whole signing takes three-quarters of a second */
     var SETTLE = 500;   /* beat before the page comes in */
 
     /* every line — the signature and each stroke of the face — starts at

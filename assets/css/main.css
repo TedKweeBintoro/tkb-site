@@ -72,6 +72,11 @@ body {
 /* the svgs keep their size while the wrapper collapses — the business
    swap must CROP the word from the right, not scale it away */
 #sigstage svg { flex-shrink: 0; }
+
+/* no flash of the finished name between first paint and the driver's
+   dash setup at window load: hold the mask strokes dark until the pen
+   moves (the driver's inline stroke-opacity takes over from here) */
+body.intro #sigstage .ms { stroke-opacity: 0; }
 #sig {
   display: block;
   width: calc(var(--hws) * var(--lw, 1084) * 1px);
