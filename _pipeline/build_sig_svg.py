@@ -137,25 +137,50 @@ def trace(mask):
         parts.append("Z")
     return "".join(parts)
 
-chunks = []
-for i, g in enumerate(groups):
+# the doodle detaches at the end: lettering flies to the header, the face
+# drifts into the page background — so they are two sibling SVGs that sit
+# flush during the signing
+FACE_FROM = 9   # strokes[9:] = hair, head+ear, eyes, mouth, inner ear
+
+def chunk(i, g):
     d_fill = trace(g["fill"])
     d_line = f"M{g['pts'][0][0]},{g['pts'][0][1]}" + "".join(
         f"L{x},{y}" for x, y in g["pts"][1:])
     pause_attr = f' data-pause="{g["pause"]}"' if g["pause"] else ""
-    chunks.append(f'''<mask id="sm{i}" maskUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}">
+    return f'''<mask id="sm{i}" maskUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}">
 <rect width="{W}" height="{H}" fill="#000"/>
 <path class="ms" data-g="{g["name"]}" d="{d_line}" stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="{g["svg_w"]}"{pause_attr}/>
 </mask>
-<path class="sf" d="{d_fill}" fill="currentColor" fill-rule="evenodd" mask="url(#sm{i})"/>''')
+<path class="sf" d="{d_fill}" fill="currentColor" fill-rule="evenodd" mask="url(#sm{i})"/>'''
 
-svg = f'''<svg id="sig" viewBox="0 0 {W} {H}" role="img" aria-label="Ted Kwee-Bintoro's signature, ending in a small self-portrait doodle" xmlns="http://www.w3.org/2000/svg">
-{chr(10).join(chunks)}
-</svg>'''
+letter_union = np.zeros_like(ink)
+for g in groups[:FACE_FROM]:
+    letter_union |= g["fill"]
+face_union = np.zeros_like(ink)
+for g in groups[FACE_FROM:]:
+    face_union |= g["fill"]
+
+LW = int(np.nonzero(letter_union.any(axis=0))[0].max()) + 6
+fys, fxs = np.nonzero(face_union)
+FX, FY = int(fxs.min()) - 4, int(fys.min()) - 4
+FW, FH = int(fxs.max()) + 5 - FX, int(fys.max()) + 5 - FY
+
+letter_chunks = [chunk(i, g) for i, g in enumerate(groups[:FACE_FROM])]
+face_chunks = [chunk(FACE_FROM + i, g) for i, g in enumerate(groups[FACE_FROM:])]
+
+svg = f'''<div id="sigstage" style="--lr:{LW/W:.4f};--fr:{FW/W:.4f};--fyr:{FY/W:.4f}">
+<svg id="sig" viewBox="0 0 {LW} {H}" role="img" aria-label="Ted Kwee-Bintoro's signature" xmlns="http://www.w3.org/2000/svg">
+{chr(10).join(letter_chunks)}
+</svg>
+<svg id="sigface" viewBox="{FX} {FY} {FW} {FH}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+{chr(10).join(face_chunks)}
+</svg>
+</div>'''
 
 html = open(f"{SITE}/index.html").read()
 assert "<!--SIG_SVG-->" in html, "placeholder missing"
 open(f"{SITE}/index.html", "w").write(html.replace("<!--SIG_SVG-->", svg))
 print(f"injected {len(groups)} per-stroke fills, {len(svg)} chars")
+print(f"lettering viewBox 0 0 {LW} {H}; face viewBox {FX} {FY} {FW} {FH}")
 for g in groups:
     print(f'  {g["name"]}: mask w {g["svg_w"]}, ink px {int(g["fill"].sum())}')

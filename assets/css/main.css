@@ -43,38 +43,44 @@ body {
 
 ::selection { background: var(--ink); color: var(--paper); }
 
-/* faint face doodle, revealed after the signing */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background: url("../../images/face.svg") 50% 40% / min(78vmin, 660px) no-repeat;
-  opacity: 0;
-  transition: opacity 1.6s ease 0.4s;
-  pointer-events: none;
-}
-body.js:not(.intro)::before { opacity: 0.05; }
-body:not(.js)::before { opacity: 0.05; }
-
 /* ─── signature ──────────────────────────────────────────────────────── */
+/* two sibling SVGs: the lettering flies to the header when the signing
+   ends; the face doodle drifts into the page background and fades */
 
 #sigwrap {
+  --sigw: min(63vw, 485px);   /* full-signature width the parts are cut from */
   display: flex;
   justify-content: center;
   padding: clamp(14px, 4.5vh, 46px) 16px 0;
   position: relative;
   z-index: 2;
 }
+#sigstage { display: flex; align-items: flex-start; }
 #sig {
-  width: min(52vw, 400px);
+  width: calc(var(--sigw) * var(--lr));
   height: auto;
   color: var(--ink);
-  overflow: visible;       /* pen may poke past the viewBox */
+  overflow: visible;
+}
+
+/* the face: by default (signing over, or no JS) it IS the page background */
+#sigface {
+  position: fixed;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  width: min(78vmin, 660px);
+  height: auto;
+  color: var(--ink);
+  opacity: 0.05;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
 }
 
 /* intro takeover: the signing is the first (and only) thing on screen */
 body.intro #sigwrap {
+  --sigw: min(80vw, 730px);
   position: fixed;
   inset: 0;
   z-index: 10;
@@ -83,9 +89,19 @@ body.intro #sigwrap {
   padding: 0 6vw;
   background: var(--paper);
 }
-body.intro #sig { width: min(80vw, 730px); }
+body.intro #sigface {
+  position: static;
+  width: calc(var(--sigw) * var(--fr));
+  margin-top: calc(var(--sigw) * var(--fyr));
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
 
 #sig.flipping { transition: transform 0.78s cubic-bezier(0.22, 0.75, 0.2, 1); }
+#sigface.flipping {
+  transition: transform 1.2s cubic-bezier(0.3, 0.6, 0.2, 1), opacity 1.2s ease;
+}
 
 /* ─── page ───────────────────────────────────────────────────────────── */
 
@@ -321,14 +337,13 @@ body.js:not(.intro) .colophon { transition-delay: 0.42s; }
   :root { --hws: 0.125; }
 }
 @media (max-height: 620px) {
-  #sigwrap { padding-top: 10px; }
-  #sig { width: min(38vw, 300px); }
+  #sigwrap { padding-top: 10px; --sigw: min(46vw, 365px); }
   .essay { font-size: clamp(13px, 1.1vh + 8px, 16px); }
 }
 
 /* ─── reduced motion ─────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
-  .essay, .colophon, .hw .f, .word, .lnk, #sig.flipping { transition: none !important; }
-  body::before { transition: opacity 0.3s ease; }
+  .essay, .colophon, .hw .f, .word, .lnk,
+  #sig.flipping, #sigface.flipping { transition: none !important; }
 }

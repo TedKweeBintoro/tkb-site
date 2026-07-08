@@ -4,12 +4,13 @@
 
   var body = document.body;
   var sig = document.getElementById("sig");
+  var face = document.getElementById("sigface");
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ── the signing ─────────────────────────────────────────────────── */
 
   var strokes = Array.prototype.slice.call(
-    document.querySelectorAll("#sig .ms")
+    document.querySelectorAll("#sigstage .ms")
   );
   var done = false;
 
@@ -18,28 +19,50 @@
     done = true;
     strokes.forEach(function (p) { p.style.strokeDashoffset = 0; });
     /* drop the masks entirely: the finished signature is the plain fills */
-    Array.prototype.forEach.call(document.querySelectorAll("#sig .sf"),
+    Array.prototype.forEach.call(document.querySelectorAll("#sigstage .sf"),
       function (f) { f.removeAttribute("mask"); });
 
-    if (skipFlip || reduced || !sig) {
+    if (skipFlip || reduced || !sig || !face) {
       body.classList.remove("intro");
       return;
     }
-    var first = sig.getBoundingClientRect();
+    var firstS = sig.getBoundingClientRect();
+    var firstF = face.getBoundingClientRect();
     body.classList.remove("intro");
-    var last = sig.getBoundingClientRect();
-    var dx = first.left + first.width / 2 - (last.left + last.width / 2);
-    var dy = first.top + first.height / 2 - (last.top + last.height / 2);
-    var sc = first.width / last.width;
+    var lastS = sig.getBoundingClientRect();
+    var lastF = face.getBoundingClientRect();
+
+    /* the lettering flies up to the header */
+    var dx = firstS.left + firstS.width / 2 - (lastS.left + lastS.width / 2);
+    var dy = firstS.top + firstS.height / 2 - (lastS.top + lastS.height / 2);
+    var sc = firstS.width / lastS.width;
     sig.style.transformOrigin = "center";
     sig.style.transform =
       "translate(" + dx + "px," + dy + "px) scale(" + sc + ")";
+
+    /* the face drifts into the background and fades; its resting state
+       already carries translate(-50%,-50%), so compose around it */
+    var fdx = firstF.left + firstF.width / 2 - (lastF.left + lastF.width / 2);
+    var fdy = firstF.top + firstF.height / 2 - (lastF.top + lastF.height / 2);
+    var fsc = firstF.width / lastF.width;
+    face.style.transform = "translate(calc(-50% + " + fdx + "px), calc(-50% + " +
+      fdy + "px)) scale(" + fsc + ")";
+    face.style.opacity = 1;
+
     void sig.getBoundingClientRect();
     sig.classList.add("flipping");
+    face.classList.add("flipping");
     sig.style.transform = "";
+    face.style.transform = "";
+    face.style.opacity = "";
     sig.addEventListener("transitionend", function te() {
       sig.classList.remove("flipping");
       sig.removeEventListener("transitionend", te);
+    });
+    face.addEventListener("transitionend", function tf(e) {
+      if (e.propertyName !== "opacity") return;
+      face.classList.remove("flipping");
+      face.removeEventListener("transitionend", tf);
     });
   }
 
