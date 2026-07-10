@@ -23,8 +23,122 @@
       "In 2016, I was the Democratic nominee for president, becoming the first woman to win a presidential nomination by a major U.S. political party and the first woman to win the popular vote for U.S. president.",
       "Sometimes people get upset when I do “the accent.”"
     ];
-    closer.textContent = closers[Math.floor(Math.random() * closers.length)]
-      .replace(/\bI /g, "I ");   /* the bio never strands a lone I */
+    /* shuffle-bag: every sentence appears once before any repeats */
+    var bag = [];
+    function refillBag() {
+      bag = closers.slice();
+      for (var i = bag.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = bag[i]; bag[i] = bag[j]; bag[j] = t;
+      }
+    }
+    var current = "";
+    function nextText() {
+      if (!bag.length) {
+        refillBag();
+        /* never repeat the sentence currently shown */
+        if (bag.length > 1 && bag[bag.length - 1] === current) {
+          bag[bag.length - 1] = bag[0];
+          bag[0] = current;
+        }
+      }
+      current = bag.pop();
+      return current
+        .replace(/\bI /g, "I\u00A0");   /* the bio never strands a lone I */
+    }
+    /* one span per character, so the line can erase and retype itself */
+    function renderCloser(text, hidden) {
+      closer.textContent = "";
+      for (var i = 0; i < text.length; i++) {
+        var ch = document.createElement("span");
+        ch.className = "ch";
+        ch.textContent = text.charAt(i);
+        if (hidden) { ch.style.opacity = "0"; ch.style.display = "none"; }
+        closer.appendChild(ch);
+      }
+    }
+    var FADE = 12;   /* matches the .ch opacity transition */
+    var STEP = 12;   /* each character takes 0.012s, so longer lines take longer */
+    /* time-based ticker: an rAF chain paints smoothly while the tab is
+       active, and a slow interval finishes the job if frames stall
+       (background tabs throttle rAF); apply(t) returns true while busy */
+    function drive(apply, done) {
+      var start = performance.now();
+      var ended = false;
+      function settle() {
+        ended = true;
+        window.clearInterval(wd);
+        done();
+      }
+      function frame() {
+        if (ended) return;
+        if (apply(performance.now() - start)) requestAnimationFrame(frame);
+        else settle();
+      }
+      var wd = window.setInterval(function () {
+        if (!ended && !apply(performance.now() - start)) settle();
+      }, 120);
+      requestAnimationFrame(frame);
+    }
+    /* erase: each character fades, then gives up its space, so the text
+       after the closer walks back in step with the backspacing */
+    function erase(done) {
+      var chars = closer.querySelectorAll(".ch");
+      var n = chars.length || 1;
+      var step = STEP;
+      drive(function (t) {
+        var busy = false;
+        for (var i = 0; i < chars.length; i++) {
+          var at = (n - 1 - i) * step;   /* the last character goes first */
+          var c = chars[i];
+          if (t >= at + FADE) {
+            if (c.style.display !== "none") c.style.display = "none";
+          } else {
+            busy = true;
+            if (t >= at) c.style.opacity = "0";
+          }
+        }
+        return busy;
+      }, done);
+    }
+    /* type: each character takes its space, then fades in */
+    function type(done) {
+      var chars = closer.querySelectorAll(".ch");
+      var step = STEP;
+      drive(function (t) {
+        var busy = false;
+        for (var i = 0; i < chars.length; i++) {
+          var c = chars[i];
+          if (t < i * step) { busy = true; }
+          else if (c.style.display === "none") { c.style.display = ""; busy = true; }
+          else if (c.style.opacity !== "1") { c.style.opacity = "1"; busy = true; }
+        }
+        return busy;
+      }, function () {
+        window.setTimeout(done, FADE);   /* let the last fade land */
+      });
+    }
+    /* a click backspaces the old line away, pauses, then types the new one in */
+    var swapping = false;
+    function swapCloser() {
+      if (swapping) return;
+      if (reduced) { renderCloser(nextText(), false); return; }
+      swapping = true;
+      erase(function () {
+        window.setTimeout(function () {
+          renderCloser(nextText(), true);
+          type(function () { swapping = false; });
+        }, 500);
+      });
+    }
+    renderCloser(nextText(), false);
+    closer.setAttribute("role", "button");
+    closer.setAttribute("tabindex", "0");
+    closer.setAttribute("aria-label", "Show another closing line");
+    closer.addEventListener("click", swapCloser);
+    closer.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); swapCloser(); }
+    });
   }
 
   /* ── layout: face centred on the essay, essay no wider than the words ── */
