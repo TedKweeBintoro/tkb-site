@@ -345,7 +345,7 @@
 
   var hw = document.getElementById("hw");
   var words = wordEls;
-  var restHref = "https://tedkweebintoro.com";
+  var restHref = "https://www.tedkweebintoro.com";
   var goTimer = null;   /* touch: pending redirect */
 
   function cancelGo() {

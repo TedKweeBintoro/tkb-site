@@ -1,4 +1,4 @@
-# tedkweebintoro.com
+# www.tedkweebintoro.com
 
 Personal site for Ted Kwee-Bintoro. Static — no build step.
 
@@ -8,14 +8,16 @@ Personal site for Ted Kwee-Bintoro. Static — no build step.
   (`images/face.svg`, also the favicon).
 - Body is set in [Redaction](https://www.redaction.us) (SIL OFL, see
   `assets/fonts/OFL.txt`), footnotes appear as tooltips.
-- Footer links assemble handwritten URL fragments
-  (`images/handwriting/`) around a centered "tedkweebintoro".
+- The footer assembles handwritten URL fragments (`images/handwriting/`) around
+  a centered "tedkweebintoro"; hover or focus reveals each social/email link,
+  while the center link returns to the canonical site URL.
 
 ## Deploying to GitHub Pages
 
 1. Push this repo to GitHub.
 2. Settings → Pages → Source: **Deploy from a branch**, branch `main`, folder `/ (root)`.
-3. The `CNAME` file points the site at `tedkweebintoro.com`; configure the
+3. The `CNAME` file points the site at `www.tedkweebintoro.com`; GitHub Pages
+   redirects the apex domain to this canonical `www` URL. Configure the
    domain's DNS to GitHub Pages as usual.
 
 `.nojekyll` is included so GitHub serves the files as-is.
