@@ -1,4 +1,4 @@
-# www.tedkweebintoro.com
+# tedkweebinto.ro
 
 Personal site for Ted Kwee-Bintoro. Static — no build step.
 
@@ -16,8 +16,7 @@ Personal site for Ted Kwee-Bintoro. Static — no build step.
 
 1. Push this repo to GitHub.
 2. Settings → Pages → Source: **Deploy from a branch**, branch `main`, folder `/ (root)`.
-3. The `CNAME` file points the site at `www.tedkweebintoro.com`; GitHub Pages
-   redirects the apex domain to this canonical `www` URL. Configure the
+3. The `CNAME` file points the site at `tedkweebinto.ro`. Configure the
    domain's DNS to GitHub Pages as usual.
 
 `.nojekyll` is included so GitHub serves the files as-is.
