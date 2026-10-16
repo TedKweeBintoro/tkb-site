@@ -181,10 +181,13 @@
     document.querySelectorAll("#sigstage .ms")
   );
   var done = false;
+  var signingAnimations = [];
 
   function finish(skipFlip) {
     if (done) return;
     done = true;
+    signingAnimations.forEach(function (animation) { animation.cancel(); });
+    signingAnimations.length = 0;
     strokes.forEach(function (p) {
       p.style.strokeDashoffset = 0;
       p.style.strokeOpacity = 1;
@@ -245,8 +248,16 @@
   function sign() {
     if (!strokes.length || reduced) { finish(true); return; }
 
+    var WORD_MS = 1150;
+    var FACE_MS = 600;
+    var SETTLE = 150;
+    var durations = [WORD_MS, FACE_MS];
+    var starts = [0, WORD_MS + 45];
+    var totals = [0, 0];
     var lens = strokes.map(function (p) { return p.getTotalLength(); });
     strokes.forEach(function (p, i) {
+      var group = p.dataset.g === "word" ? 0 : 1;
+      totals[group] += lens[i];
       p.style.strokeDasharray = lens[i] + " " + lens[i];
       p.style.strokeDashoffset = lens[i];
       /* round caps paint zero-length dash dots at subpath starts; keep
@@ -254,36 +265,22 @@
       p.style.strokeOpacity = 0;
     });
 
-    var WORD_MS = 500;   /* the signature writes in half a second */
-    var FACE_MS = 1000;  /* the face takes the full second */
-    var SETTLE = 500;    /* beat before the page comes in */
-
-    /* every line starts at t0; the signature's lines complete at WORD_MS,
-       the face's at FACE_MS, each drawn at its own pace */
-    var durs = strokes.map(function (p) {
-      return p.closest("#sigface") ? FACE_MS : WORD_MS;
+    strokes.forEach(function (p, i) {
+      var group = p.dataset.g === "word" ? 0 : 1;
+      var duration = lens[i] / totals[group] * durations[group];
+      signingAnimations.push(p.animate({
+        strokeDashoffset: [lens[i], 0],
+        strokeOpacity: [1, 1]
+      }, {
+        duration: duration,
+        delay: starts[group],
+        fill: "forwards"
+      }));
+      starts[group] += duration;
     });
-    var TOTAL = Math.max(WORD_MS, FACE_MS);
-
-    var t0 = null;
-    function frame(ts) {
-      if (done) return;
-      if (t0 === null) t0 = ts;
-      var elapsed = ts - t0;
-
-      for (var k = 0; k < strokes.length; k++) {
-        var f = Math.max(0, Math.min(1, elapsed / durs[k]));
-        strokes[k].style.strokeDashoffset = lens[k] * (1 - f);
-        strokes[k].style.strokeOpacity = 1;
-      }
-
-      if (elapsed >= TOTAL) {
-        window.setTimeout(function () { finish(false); }, SETTLE);
-        return;
-      }
-      window.requestAnimationFrame(frame);
-    }
-    window.requestAnimationFrame(frame);
+    signingAnimations[signingAnimations.length - 1].onfinish = function () {
+      window.setTimeout(function () { finish(false); }, SETTLE);
+    };
 
     /* escape hatches: click to skip, hard cap in case of jank */
     document.addEventListener("pointerdown", function () { finish(false); }, { once: true });

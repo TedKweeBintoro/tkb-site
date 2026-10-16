@@ -69,12 +69,21 @@ body {
    the negative margins cancel it out of the layout. */
 #sigwrap {
   display: block;
+  position: relative;
   width: calc(var(--hws) * 1059px);
   margin-bottom: calc(var(--hws) * -43px);  /* hang the descenders */
   overflow: hidden;
   /* width only — never opacity: the fixed-position background face lives
      inside this wrapper, and ancestor opacity would take it down too */
   transition: width 0.45s cubic-bezier(0.6, 0.15, 0.15, 1);
+}
+#sig-period {
+  position: absolute;
+  left: calc(var(--hws) * 942px);
+  top: calc(var(--hws) * 123px);
+  width: calc(var(--hws) * var(--fw) * 1px);
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease, background-color 0.25s ease;
 }
 #sigwrap.flying { overflow: visible; }   /* let the FLIP leave the box */
 #sigstage { display: flex; align-items: flex-start; }
@@ -331,7 +340,7 @@ body.js:not(.intro) .words { transition-delay: 0.2s; }
   -webkit-mask-image: url("../../images/handwriting/katytechnologies.png");
   mask-image: url("../../images/handwriting/katytechnologies.png");
 }
-.post .f[data-frag="period"] {
+.hw .f[data-frag="period"] {
   -webkit-mask-image: url("../../images/handwriting/period.png");
   mask-image: url("../../images/handwriting/period.png");
 }
@@ -339,7 +348,7 @@ body.js:not(.intro) .words { transition-delay: 0.2s; }
   -webkit-mask-image: url("../../images/handwriting/substack.png");
   mask-image: url("../../images/handwriting/substack.png");
 }
-.post .f[data-for~="personal"] {
+.post .f[data-for~="business"] {
   -webkit-mask-image: url("../../images/handwriting/dotcom.png");
   mask-image: url("../../images/handwriting/dotcom.png");
 }
