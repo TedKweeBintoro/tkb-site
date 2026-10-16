@@ -113,12 +113,11 @@ c_tittle = tiny[0]
 
 g_tedk = chain(runs[c_tedk], (0, 81))
 g_weeb = chain(runs[c_weeb], tuple(g_tedk[-1][-1]))
+g_weeb = [g_weeb[0][::-1], g_weeb[-2][::-1], g_weeb[-1]] + g_weeb[1:-2]
 g_intoro = chain(runs[c_intoro], tuple(g_weeb[-1][-1]))
 g_tittle = chain(runs[c_tittle], tuple(g_intoro[-1][-1]))
 
 GROUPS = [
-    # the whole signature is one gesture (the dash flows through every pen
-    # run; subpath hops are instant); the face draws on a parallel track
     ("word",     g_tedk + g_weeb + g_intoro + g_tittle, 0),
     ("hair",     [face_pts(30), face_pts(31)],  0),
     ("headear",  [face_pts(32)],                0),
