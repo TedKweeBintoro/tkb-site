@@ -12,7 +12,6 @@
   var closer = document.getElementById("bio-close");
   if (closer) {
     var closers = [
-      "Sometimes I write.",
       "I don’t have a driver’s license yet, so I have to scooter everywhere.",
       "I’ve been trying to be more concise lately.",
       "Every day is a cultural revolution if you lack taste.",
@@ -21,7 +20,10 @@
       "At the end of the day, there is night.",
       "I am an Asian-passing white man.",
       "In 2016, I was the Democratic nominee for president, becoming the first woman to win a presidential nomination by a major U.S. political party and the first woman to win the popular vote for U.S. president.",
-      "Sometimes people get upset when I do “the accent.”"
+      "Sometimes people get upset when I do and say certain upsetting things and I don't really know why.",
+      "Apart from that, I am an Asian-passing white man who has been serving as a youth pastor in underprivileged areas for the past three years.",
+      "My Chinese accent is just my regular accent, but that's just because I'm not great at doing accents.",
+      "At the precious young age of eight, I was certified a genious by an unlicensed psychiatrist."
     ];
     /* shuffle-bag: every sentence appears once before any repeats */
     var bag = [];

@@ -7,7 +7,8 @@ Personal site for Ted Kwee-Bintoro. Static — no build step.
   masks in pen order. The lettering comes from `images/handwriting/tedkweebintoro.png`;
   the face comes from `images/SignatureHQ.png`. Reduced motion skips the intro.
 - The face doodle from the signature is the faint page background
-  (`images/face.svg`, also the favicon).
+  (`images/face.svg`). `images/favicon.svg` keeps the same drawing on a square
+  canvas with vertical padding, so favicon slots do not stretch it.
 - Body is set in [Redaction](https://www.redaction.us) (SIL OFL, see
   `assets/fonts/OFL.txt`), footnotes appear as tooltips.
 - The footer assembles handwritten URL fragments (`images/handwriting/`) around
@@ -17,6 +18,13 @@ Personal site for Ted Kwee-Bintoro. Static — no build step.
   `images/handwriting/period.png`, sized to match the `i` tittle's visual weight.
   The dot fades in beneath the `o`/`r` ligature, left of the `r` downstroke,
   without adding space or replacing the signature.
+- The site name is `Ted Kwee-Bintoro`; the page and social-preview title is
+  `welcome to ted kwee binto dot ro`. Search and social descriptions use the
+  "At the precious young age of eight..." line. Metadata lives in `index.html`;
+  Google may rewrite search titles and snippets after crawling.
+- The closing line rotates through 12 sentences in `assets/js/main.js`, without
+  repeating until the shuffle bag is exhausted. Click it or press Enter/Space
+  while focused to show another.
 
 ## Deploying to GitHub Pages
 
