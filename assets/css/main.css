@@ -198,15 +198,17 @@ body.js:not(.intro) .words { transition-delay: 0.2s; }
 .uc { text-transform: uppercase; letter-spacing: 0.035em; }
 .sc { font-variant-caps: small-caps; letter-spacing: 0.035em; }
 
-/* M spans line-1 cap top to line-2 baseline, flush with the copy block
-   (Redaction: cap .70em, font box 1.2em; bio line 1.58em) */
+/* hand-drawn M spans line-1 cap top to line-2 baseline, flush with the
+   copy block; the letter stays in the DOM for selection and screen readers */
 .dropcap {
   float: left;
-  font-weight: 700;
-  font-size: 3.257em;
-  line-height: 0.8;
-  padding: 0.12em 0.07em 0 0;
-  margin-left: 0.02em;
+  width: 2.669em;
+  height: 2.36em;
+  margin: 0.33em 0.3em 0 0;
+  background: url("../../images/dropcap-m.webp") no-repeat 0 0 / contain;
+  color: transparent;
+  line-height: 0;
+  overflow: hidden;
 }
 
 .lnk, #bio-close {
